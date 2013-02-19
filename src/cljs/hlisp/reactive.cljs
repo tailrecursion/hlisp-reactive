@@ -205,4 +205,7 @@
   [elem & event-callbacks]
   (mapv (partial apply do-on! elem) (partition 2 event-callbacks)))
 
-
+(defn thing-looper [things g]
+  (fn [f container]
+    (into container (mapv #(apply f % (g things %))
+                          (range 0 (count @things))))))
