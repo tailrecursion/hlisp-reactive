@@ -52,7 +52,7 @@
    (.val e))
   ([e v]
    (-> e
-     (.val v)
+     (.val (str v))
      (.trigger "change"))))
 
 (defn check-val!
@@ -70,62 +70,37 @@
       "checkbox" (apply check-val! e args)
       (apply text-val! e args))))
 
+(defn- safe-name [x]
+  (try (name x) (catch js/Error e)))
+
 (defn attr!
   ([elem k]
-   (.attr (dom-get elem) k))
+   (.attr (dom-get elem) (name k)))
   ([elem k v & kvs]
    (js/jQuery
      #(let [e (dom-get elem)] 
         (mapv (fn [[k v]]
-                (let [k (name k)]
+                (when-let [k (safe-name k)]
                   (case v
                     true   (.attr e k k)
                     false  (.removeAttr e k)
-                    (.attr e k v))))
+                    (.attr e k (str v)))))
               (partition 2 (list* k v kvs)))))))
-
-(defn remove-attr!
-  [elem k & ks]
-  (js/jQuery
-    (fn []
-      (let [e (.removeAttr (dom-get elem) k)]
-        (when (seq ks)
-          (mapv #(.removeAttr e %) ks))))))
 
 (defn class!
   ([elem c] 
-   (js/jQuery #(.toggleClass (dom-get elem) (name c)))) 
+   (when-let [c (safe-name c)]
+     (js/jQuery #(.toggleClass (dom-get elem) c)))) 
   ([elem c switch & cswitches] 
    (js/jQuery
      (fn []
-       (mapv (partial apply #(.toggleClass (dom-get elem) (name %1) %2)) 
+       (mapv (partial apply #(when-let [c (safe-name %1)]
+                               (.toggleClass (dom-get elem) c (boolean %2)))) 
              (partition 2 (list* c switch cswitches)))))))
-
-(defn add-class!
-  [elem c & cs]
-  (js/jQuery
-    (fn []
-      (let [e (.addClass (dom-get elem) c)]
-        (when (seq cs)
-          (mapv #(.addClass e %) cs))))))
-
-(defn remove-class!
-  [elem c & cs]
-  (js/jQuery
-    (fn []
-      (let [e (.removeClass (dom-get elem) c)]
-        (when (seq cs)
-          (mapv #(.removeClass e %) cs))))))
-
-(defn css!
-  ([elem k v]
-   (js/jQuery #(.css (dom-get elem) k v)))
-  ([elem o]
-   (js/jQuery #(.css (dom-get elem) (clj->js o)))))
 
 (defn toggle!
   [elem v]
-  (js/jQuery #(.toggle (dom-get elem) v)))
+  (js/jQuery #(.toggle (dom-get elem) (boolean v))))
 
 (defn slide-toggle!
   [elem v]
@@ -152,12 +127,7 @@
 
 (defn text!
   [elem v]
-  (js/jQuery #(.text (dom-get elem) v)))
-
-(defn set-nodeValue!
-  [node v]
-  (set! (.-nodeValue node) v) 
-  node)
+  (js/jQuery #(.text (dom-get elem) (str v))))
 
 (defn disabled?
   [elem]
