@@ -19,9 +19,17 @@
   (defn- remove-attr [[tag attrs & children] attr]
     (list* tag (dissoc attrs attr) children))
 
+  (defn- sub-ids [form]
+    (walk/postwalk
+      #(if (and (listy? %) (= 'clojure.core/unquote (first %)))
+         (apply str ["#" (second %)])
+         %)
+      form))
+
   (defn- do-reactive-1 [[tag maybe-attrs & children :as form]]
     (let [{dostr :do} (if (map? maybe-attrs) maybe-attrs {})
-          exprs       (if (seq dostr) (read-string (str "(" dostr ")")))]
+          exprs       (if (seq dostr)
+                        (sub-ids (read-string (str "(" dostr ")"))))]
       (if exprs
         `(~deref*
            (let [f# (~clone ~(remove-attr form :do))]
