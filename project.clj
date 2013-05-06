@@ -1,4 +1,4 @@
-(defproject tailrecursion/hlisp-reactive "1.0.2-SNAPSHOT"
+(defproject tailrecursion/hlisp-reactive "1.0.3-SNAPSHOT"
   :description  "Javelin FRP for HLisp"
   :url          "https://github.com/tailrecursion/hlisp-reactive/"
   :license      {:name "Eclipse Public License"
