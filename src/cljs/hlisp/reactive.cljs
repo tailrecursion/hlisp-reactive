@@ -186,8 +186,7 @@
 (defn thing-looper [things g]
   (fn [f container]
     (let [c (hl/clone container)]
-      (.log js/console "[loop]" (id c))
-      (js/setTimeout
+      (hl/add-initfn!
         (fn []
           (let [buffer  (cell '[])
                 pool    (cell '{})
@@ -205,10 +204,8 @@
                            (mapv free (reverse (range %2 %1))))]
             (cell (#(let [prev (nbuf), now (count %)]
                       (when-not (= prev now)
-                        (.log js/console "[omfg]" (id c) (.size (dom-get c)))
                         (setbuf % @buffer)
                         (realloc prev now)) 
                       (setbuf % %))
-                     things)))) 
-        0) 
+                   things)))))
       c)))
