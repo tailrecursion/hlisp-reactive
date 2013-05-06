@@ -12,22 +12,24 @@
       deref*  (symbol "tailrecursion.javelin.core" "deref*")]
 
   (defn- listy? [form]
-    (instance? clojure.lang.ISeq form))
+    (or (list? form)
+        (= clojure.lang.LazySeq (type form))
+        (= clojure.lang.Cons (type form)))) 
 
   (defn- remove-attr [[tag attrs & children] attr]
     (list* tag (dissoc attrs attr) children))
 
   (defn- sub-ids [form]
-    (let [uq?   #(and (listy? %) (= 'clojure.core/unquote (first %)))
-          walk  #(if (uq? %) (apply str ["#" (second %)]) %)]
-      (walk/postwalk walk form)))
+    (walk/postwalk
+      #(if (and (listy? %) (= 'clojure.core/unquote (first %)))
+         (apply str ["#" (second %)])
+         %)
+      form))
 
   (defn- do-reactive-1 [[tag maybe-attrs & children :as form]]
     (let [{dostr :do} (if (map? maybe-attrs) maybe-attrs {})
-          exprs       (sub-ids
-                        (if (string? dostr)
-                          (read-string (str "(" dostr ")"))
-                          (seq dostr)))]
+          exprs       (if (seq dostr)
+                        (sub-ids (read-string (str "(" dostr ")"))))]
       (if exprs
         `(~deref*
            (let [f# (~clone ~(remove-attr form :do))]

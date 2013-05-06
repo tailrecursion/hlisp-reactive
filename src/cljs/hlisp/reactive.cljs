@@ -98,15 +98,6 @@
                                (.toggleClass (dom-get elem) c (boolean %2)))) 
              (partition 2 (list* c switch cswitches)))))))
 
-(defn css! 
-  ([elem k]
-   (js/jQuery #(.css (dom-get elem) k)))
-  ([elem k v]
-   (js/jQuery #(.css (dom-get elem) k v)))
-  ([elem k v & more]
-   (js/jQuery #(mapv (fn [[k v]] (css! elem k v))
-                     (cons (list k v) (partition 2 more))))))
-
 (defn toggle!
   [elem v]
   (js/jQuery #(.toggle (dom-get elem) (boolean v))))
@@ -175,7 +166,8 @@
 
 (defn- do-on!
   [elem event callback]
-  (let [event   (get events (keyword event))
+  (let [c       (cell nil)
+        event   (get events (keyword event))
         update  #(if (and (not= %3 %4) ((filter-id (id elem)) %4)) (callback %4))]
     (add-watch event (gensym) update)))
 
@@ -185,27 +177,5 @@
 
 (defn thing-looper [things g]
   (fn [f container]
-    (let [c (hl/clone container)]
-      (hl/add-initfn!
-        (fn []
-          (let [buffer  (cell '[])
-                pool    (cell '{})
-                nbuf    #(count (remove (partial = ::none) @buffer))
-                padvec  #(vec (take %1 (concat %2 (repeat ::none))))
-                setbuf  #(reset! buffer (padvec (max (count @buffer) (count %1)) %2))
-                thing   #(if-let [t (get @pool %)]
-                           (do (swap! pool dissoc %) t)
-                           (hl/dom (apply f % (g buffer %))))
-                malloc  #(.append (dom-get c) (thing %))
-                free    #(let [e (.remove (.eq (.children (dom-get c)) -1))]
-                           (swap! pool assoc % e)) 
-                realloc #(if (pos? (- %2 %1))
-                           (mapv malloc (range %1 %2))
-                           (mapv free (reverse (range %2 %1))))]
-            (cell (#(let [prev (nbuf), now (count %)]
-                      (when-not (= prev now)
-                        (setbuf % @buffer)
-                        (realloc prev now)) 
-                      (setbuf % %))
-                   things)))))
-      c)))
+    (into container (mapv #(apply f % (g things %))
+                          (range 0 (count @things))))))
