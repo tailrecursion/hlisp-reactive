@@ -98,6 +98,15 @@
                                (.toggleClass (dom-get elem) c (boolean %2)))) 
              (partition 2 (list* c switch cswitches)))))))
 
+(defn css! 
+  ([elem k]
+   (js/jQuery #(.css (dom-get elem) k)))
+  ([elem k v]
+   (js/jQuery #(.css (dom-get elem) k v)))
+  ([elem k v & more]
+   (js/jQuery #(mapv (fn [[k v]] (css! elem k v))
+                     (cons (list k v) (partition 2 more))))))
+
 (defn toggle!
   [elem v]
   (js/jQuery #(.toggle (dom-get elem) (boolean v))))
