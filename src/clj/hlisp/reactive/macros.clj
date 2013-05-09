@@ -3,11 +3,13 @@
     [clojure.walk :as    walk]
     [clojure.set  :refer [union intersection]]))
 
+(create-ns 'js)
 (create-ns 'hlisp.dom)
 (create-ns 'tailrecursion.javelin.macros)
 (create-ns 'tailrecursion.javelin.core)
 
-(let [clone   (symbol "hlisp.env" "clone")
+(let [jQuery  (symbol "js" "jQuery")
+      clone   (symbol "hlisp.env" "clone")
       cell    (symbol "tailrecursion.javelin.macros" "cell")
       deref*  (symbol "tailrecursion.javelin.core" "deref*")]
 
@@ -22,7 +24,7 @@
   (defn- sub-ids [form]
     (walk/postwalk
       #(if (and (listy? %) (= 'clojure.core/unquote (first %)))
-         (apply str ["#" (second %)])
+         (list jQuery (apply str ["#" (second %)])) 
          %)
       form))
 

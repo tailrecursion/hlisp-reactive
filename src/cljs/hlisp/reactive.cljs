@@ -100,9 +100,9 @@
 
 (defn css! 
   ([elem k]
-   (js/jQuery #(.css (dom-get elem) k)))
+   (js/jQuery #(.css (dom-get elem) (safe-name k))))
   ([elem k v]
-   (js/jQuery #(.css (dom-get elem) k v)))
+   (js/jQuery #(.css (dom-get elem) (safe-name k) v)))
   ([elem k v & more]
    (js/jQuery #(mapv (fn [[k v]] (css! elem k v))
                      (cons (list k v) (partition 2 more))))))
