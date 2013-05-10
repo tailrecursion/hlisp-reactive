@@ -47,6 +47,21 @@
     (find-id (id elem))
     (js/jQuery elem)))
 
+(defn rel
+  [other event]
+  (let [os (js->clj (.offset (dom-get other))) 
+        ox (os "left")
+        oy (os "top")]
+    {:x (- (.-pageX event) ox) :y (- (.-pageY event) oy)}))
+
+(defn relx
+  [other event]
+  (:x (rel other event)))
+
+(defn rely
+  [other event]
+  (:y (rel other event)))
+
 (defn text-val!
   ([e]
    (.val e))
