@@ -62,6 +62,13 @@
   [other event]
   (:y (rel other event)))
 
+(defn rel-event
+  [rel-to tag handler]
+  (fn [event]
+    (aset event (str tag "X") (relx rel-to event))
+    (aset event (str tag "Y") (rely rel-to event))
+    (handler event)))
+
 (defn text-val!
   ([e]
    (.val e))
