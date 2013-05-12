@@ -24,11 +24,12 @@
   [ctx op]
   (case (first op)
     :do           (vec (rest op))
-    :with         `[[:push ~(nth op 1)] ~@(drop 2 op) [:pop]]
+    :with         `[[:save] [:set ~(nth op 1)] ~@(drop 2 op) [:restore]]
     :clear        (let [c (.-canvas ctx)] (.clearRect ctx 0 0 (.-width c) (.-height c)))
     :fill         (let [c (.-canvas ctx)] (.fillRect ctx 0 0 (.-width c) (.-height c)))
-    :push         (do (.save ctx) (ctx-config! ctx (nth op 1)))
-    :pop          (.restore ctx)
+    :set          (ctx-config!  ctx (nth op 1))
+    :save         (.save        ctx)
+    :restore      (.restore     ctx)
     :clear-rect   (.clearRect   ctx (nth op 1) (nth op 2) (nth op 3) (nth op 4))
     :stroke-rect  (.strokeRect  ctx (nth op 1) (nth op 2) (nth op 3) (nth op 4))
     :fill-rect    (.fillRect    ctx (nth op 1) (nth op 2) (nth op 3) (nth op 4))
